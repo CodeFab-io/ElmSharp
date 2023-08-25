@@ -216,12 +216,12 @@ public static partial class ElmFuncs
 }
 ```
 
-Okay, wow that's a mouthful piece of code, let's break it down. The way subscriptions work is that ElmSharp will use the dictionary key to manage them for you. The dictionary key is your unique identifier of a particular subscription configration.
+Okay, wow that's a mouthful piece of code, let's break it down. The way subscriptions work is that ElmSharp will use the dictionary key to manage them for you. The dictionary key is your unique identifier of a particular subscription configuration.
 
 In this piece of code, we are returning a `Dictionary`. Always keep in mind that as a user, your code is pure. So constructing a subscription has no side-effects. It will be ElmSharp itself that keeps track of "Hey, you didn't have a subscription named 'banana' before, so let me wire that up for you. Also, I notice that you no longer returned a subscription named 'cat-alert', so I'll tear it down for you.". Behind the scenes, ElmSharp uses `Task`s and `CancellationToken`s to clean everything up, but as an ElmSharp user this is not something you need to worry about. Just keep in mind that if you keep the same `key`, ElmSharp won't make any subscription management for you.
 
 > 🐉 A potential cause for bugs: if you make adjustments to the subscription instance, but keep the same key, ElmSharp won't do any management for you. Imagine you have a TimeSubscription (which takes a `TimeSpan` as the interval). Yet, you set the internal to be a number in your `Model`. If your code returns the same key, but different instances of the subscription each time, ElmSharp won't notice this, and it will keep the first subscription active and not the latest. 
-If you wished to have such a kind of subscription, make sure the key is constructed according to the parameters that make the subscription unique. Almost like the `Vary` paramater on a cache mechanism.
+If you wished to have such a kind of subscription, make sure the key is constructed according to the parameters that make the subscription unique. Almost like the `Vary` parameter on a cache mechanism.
 
 ## 🔧 Adjusting the `Update` function
 
@@ -511,7 +511,7 @@ Yes, in the `Init` function. But remember, the `Init` function, just like all th
 
 > ℹ Did you notice that all the functions we wrote so far are **pure**? A pure function is a function that given the same inputs will **always** return the same output. Which is a fancy way of saying it has no "tentacles" or dependencies to the external world/state. We accomplish this by not using impure methods, such as `DateTime.Now`, `Random`, `Guid.NewGuid()` etc. 
 Every time we need to do such impure business we use a `Command` to do it, and the command generates a pure `Message` so that we can get back to a pure implementation of `Update`. This applies to everything: HTTP requests, randomness, datetime, etc. 
-If you think about it, and you have some TDD experience, you will notice that TDD compels you to remove all impurity from your methods, so they can be instrumented and tested. What we have accomplished with ElmSharp is an architecture (the elm architecture) that forces us to stay pure. I guess you can see how testing these pure functions then becomes a trivial matter: no dependency injection, no fancy business: you construct a `Model`, you construct a `Message`, invoke the `Update` function and assert against the output. Same thing goes for the `View` function.
+If you think about it, and you have some TDD experience, you will notice that TDD compels you to remove all impurity from your methods, so they can be instrumented and tested. What we have accomplished with ElmSharp is an architecture (the elm architecture) that forces us to stay pure. I guess you can see how testing these pure functions then becomes a trivial matter: no dependency injection, no fancy business: you construct a `Model`, you construct a `Message`, invoke the `Update` function and assert against the output. Same thing goes for the `View` function. You can find the testing examples for the GuessingGame [here](../GuessingGame-Tests/).
 Notice how `Update` isn't even `async/await` because it really doesn't have the capability of going out into the world and do ..who knows what... Fun stuff, no? 🙂
 
 So, back to the problem at hand: generating a random number between 0 and 9. Let's use another built-in command: `Cmd.GetRandomNumberCommand` which leverages the `System.Security.Cryptography.RandomNumberGenerator` to do its thing.
