@@ -8,9 +8,9 @@ public static partial class ElmSharp<TModel, TMessage>
     {
         public sealed class GetRandomNumberCommand : RunnableCommand 
         { 
-            int FromInclusive { get; init; }
-            int ToExclusive { get; init; }
-            Func<int, TMessage> OnRandomNumberGenerated { get; init; }
+            public int FromInclusive { get; init; }
+            public int ToExclusive { get; init; }
+            public Func<int, TMessage> OnRandomNumberGenerated { get; init; }
 
             public GetRandomNumberCommand(int fromInclusive, int toExclusive, Func<int, TMessage> onRandomNumberGenerated) =>
                 (FromInclusive, ToExclusive, OnRandomNumberGenerated) =

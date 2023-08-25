@@ -6,8 +6,8 @@ public static partial class ElmSharp<TModel, TMessage>
     {
         public sealed class SetTimeoutCommand : RunnableCommand
         {
-            TimeSpan TimeoutDuration { get; init; }
-            Func<TMessage> OnTimeoutElapsed { get; init; }
+            public TimeSpan TimeoutDuration { get; init; }
+            public Func<TMessage> OnTimeoutElapsed { get; init; }
 
             public SetTimeoutCommand(
                 TimeSpan timeoutDuration,

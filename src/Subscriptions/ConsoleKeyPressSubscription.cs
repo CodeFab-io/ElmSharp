@@ -6,7 +6,7 @@ public static partial class ElmSharp<TModel, TMessage>
     {
         public sealed class ConsoleKeyPressSubscription : Subscription
         {
-            Func<ConsoleKeyInfo, TMessage> OnKeyPress { get; init; }
+            public Func<ConsoleKeyInfo, TMessage> OnKeyPress { get; init; }
 
             public ConsoleKeyPressSubscription(Func<ConsoleKeyInfo, TMessage> onKeyPress) =>
                 OnKeyPress = onKeyPress;
