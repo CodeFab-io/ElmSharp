@@ -8,7 +8,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>ElmSharp</Title>
     <AssemblyVersion></AssemblyVersion>
-    <Version>0.0.1-beta</Version>
+    <Version>0.0.2-beta</Version>
     <SignAssembly>True</SignAssembly>
     <Authors>Fábio Beirão</Authors>
     <Company>CodeFab.io</Company>
@@ -23,6 +23,8 @@
     <PackageId>codefab.io.ElmSharp</PackageId>
     <Copyright>Copyright © 2023 - All rights reserved - Fábio Beirão</Copyright>
     <PackageIcon>ElmSharp-128.png</PackageIcon>
+    <PackageReleaseNotes>(BETA software)
+An initial release to gather feedback from members of the community</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>

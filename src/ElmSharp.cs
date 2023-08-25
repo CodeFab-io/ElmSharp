@@ -15,8 +15,8 @@ public static partial class ElmSharp<TModel, TMessage>
         var currentSubscriptions = ImmutableDictionary<string, CancellationTokenSource>.Empty;
 
         var mailbox = Channel.CreateUnbounded<TMessage>();
-        Action<TMessage> dispatcher = msg => mailbox.Writer.TryWrite(msg);
-        
+        void dispatcher(TMessage msg) => mailbox.Writer.TryWrite(msg);
+
         var (model, cmd) = init();
 
         var desiredSubscriptions = subscriptions(model);
@@ -25,7 +25,7 @@ public static partial class ElmSharp<TModel, TMessage>
 
         while (true)
         {
-            if (cmd is Command.StopApp stopAppCmd) 
+            if (cmd is Command.StopAppCommand stopAppCmd) 
                 return stopAppCmd.ExitCode;
 
             RunCmd(cmd, dispatcher, cancellationToken);
@@ -59,20 +59,10 @@ public static partial class ElmSharp<TModel, TMessage>
 
     public abstract partial class Command
     {
-        public static Command None { get; } = new NoCmd();
+        public static Command None { get; } = new EmptyCommand();
 
-        public static StopApp StopAppWithCode(int exitCode) =>
+        public static StopAppCommand StopAppWithCode(int exitCode) =>
             new(exitCode: exitCode);
-
-        sealed class NoCmd : Command { }
-
-        public sealed class StopApp : Command
-        {
-            public int ExitCode { get; init; }
-
-            internal StopApp(int exitCode) =>
-                ExitCode = exitCode;
-        }
     }
 
     public abstract class RunnableCommand : Command
