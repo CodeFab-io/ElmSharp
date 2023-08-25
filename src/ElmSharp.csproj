@@ -28,7 +28,7 @@ An initial release to gather feedback from members of the community</PackageRele
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\ElmSharp-128.png">
+    <None Include="..\logo\ElmSharp-128.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
