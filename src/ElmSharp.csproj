@@ -4,6 +4,40 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>ElmSharp</Title>
+    <AssemblyVersion></AssemblyVersion>
+    <Version>0.0.1-beta</Version>
+    <SignAssembly>True</SignAssembly>
+    <Authors>Fábio Beirão</Authors>
+    <Company>CodeFab.io</Company>
+    <Description>An elm-architecture inspired runtime</Description>
+    <PackageProjectUrl>https://github.com/CodeFab-io/ElmSharp</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/CodeFab-io/ElmSharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>elm;runtime;elmish;fp;functional;</PackageTags>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <PackageId>codefab.io.ElmSharp</PackageId>
+    <Copyright>Copyright © 2023 - All rights reserved - Fábio Beirão</Copyright>
+    <PackageIcon>ElmSharp-128.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\ElmSharp-128.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
