@@ -96,6 +96,23 @@ internal static (Model, Cmd) OnKeyPressed(
 
 In this application, we'll create a "game" where the computer "thinks" of a number between `0` and `9` and the player tries to guess the number. On each guess, the computer will tell the player if the number is greater or lower than the correct one, or if the player guessed the number. We'll use a console application for this example.
 
+### 🚀 Initial dotnet commands
+
+Let's assume you have the [dotnet CLI installed](https://learn.microsoft.com/en-us/dotnet/core/install/windows) on your machine. Here are the initial commands to setup an ElmSharp application.
+
+```
+mkdir GuessingGame
+cd GuessingGame
+dotnet new console
+dotnet add package codefab.io.ElmSharp --prerelease
+```
+
+> 🚧 There are plans to create a dotnet tool to help with the initial boilerplate.
+
+You can now open the project with you favorite editor, perhaps [jetbrains Rider](https://www.jetbrains.com/rider/), perhaps [Visual Studio Code](https://code.visualstudio.com/), perhaps [Microsoft Visual Studio](https://visualstudio.microsoft.com/) itself.
+
+If you wish you can clear the default contents of `Program.cs`.
+
 ### 🔢 `Model`
 
 Our `Model` will need to hold two values: the number to be guessed, and the player's current guess. We create a new `Model.cs` file with the following:
@@ -125,7 +142,7 @@ public abstract record Message
 
 ### 🌍 Global Usings
 
-Now that we have both a `Model` and a `Message` we can create our `GlobalUsings.cs` to make future code much easier:
+Now that we have both a `Model` and a `Message` we can create a `GlobalUsings.cs` file to make future code much easier:
 
 ```csharp
 // 📃 GlobalUsings.cs
@@ -160,7 +177,7 @@ As a reminder, `Init()` will be invoked by ElmSharp runtime once, when the appli
 
 ### ♻ `Update`
 
-Given that we don't yet have any `Message` defined in our game, our `Update` function will pretty much be a no-op. Nevertheless, that is our starting point, so let's create it in `Update.cs`. As before, we use the `partial class ElmFuncs` trick:
+Given that we don't yet have any `Message` defined in our game, our `Update` function will pretty much be a no-op. Nevertheless, that is our starting point, so let's create it in a new file called `Update.cs`. As before, we use the `partial class ElmFuncs` trick:
 
 ```csharp
 // 📃 Update.cs
@@ -177,7 +194,7 @@ In a normal (and upcoming) implementation of `Update` we will be doing `message 
 
 ### ☎ `Subscriptions`
 
-Subscriptions are what allow us to hook up to "non-view events". Imagine that at some point we want to have a count-down where the player would only have a few seconds to choose a number, we could subscribe to Time and ElmSharp would send us a `Message` whenever a certain amount of time elapses. For now we'll have an empty subscriptions, but we'll pretty soon have our first subscription to KeyPresses. As before, we leverage the `partial class ElmFuncs` trick:
+Subscriptions are what allow us to hook up to "non-view events". Imagine that at some point we want to have a count-down where the player would only have a few seconds to choose a number: we could subscribe to Time and ElmSharp would send us a `Message` whenever a certain amount of time elapses. For now we won't have subscriptions, but we'll pretty soon have our first subscription to KeyPresses. As before, we leverage the `partial class ElmFuncs` trick in a new `Subscriptions.cs` file:
 
 ```csharp
 // 📃 Subscriptions.cs
@@ -220,7 +237,7 @@ public static partial class ElmFuncs
 
 Okay, it is time to wire everything together and see if we get some output on our console. 🤞 fingers crossed!
 
-Let's create a `Program.cs` file and with the power of top-level statements it will look like this:
+If you don't have it already you can create a `Program.cs` file. Otherwise modify the default one. We leverage the power of top-level statements, so it will look like this:
 
 ```csharp
 // 📃 Program.cs
@@ -234,25 +251,29 @@ await ElmSharp<Model, Message>.Run(
     subscriptions: ElmFuncs.Subscriptions);
 ```
 
-If we run the application we'll be able to see the initial screen of our game. But alas, it is a **very** boring game, since we can't guess a number, or even [quit the application](https://stackoverflow.com/questions/11828270/how-do-i-exit-vim). Let's fix that 💪
+We are now able to run the most boring game in the universe, by running `dotnet run` in our console.
+
+As expected, it is a **very** boring game, since we can't guess a number, or even [quit the application](https://stackoverflow.com/questions/11828270/how-do-i-exit-vim). Let's fix that, shall we? 💪 (And, for now you can use `Ctrl+C` to "quit" the game 😅).
 
 ### 🚪 Add feature: quit the game
 
-ElmSharp comes with some built-in commands, and the one we are interested in is `StopApp` which can be obtained via `Command.StopAppWithCode(int exitCode)`. This sounds like a perfect candidate for the "quit the game" feature.
+ElmSharp comes with some built-in commands, and the one we are interested in is `StopAppCommand` which can be obtained via `Command.StopAppWithCode(int exitCode)`. This sounds like a perfect candidate for the "quit the game" feature.
 
-However, we must keep two things in mind: `Command` can only come from `Init` or `Update`. Given that we don't want our application to quit upon start, we must do it in the `Update` function. The hurdle is that `Update` can only be triggered by a `Message`. So we need some kind of message that lets us know the player has pressed a key. For this we can use a `Subscription`.
+However, we must keep two things in mind: a `Command` can only come from the `Init` or `Update` functions. Given that we don't want our application to quit upon start, we must do it in the `Update` function. The hurdle is that `Update` can only be triggered by a `Message`. So we need some kind of message that lets us know the player has pressed a key. For this we can use a `Subscription`.
 
 Our goal will be:
 
 * Create a new `Message`: `PlayerPressedKey`
 
-* Add a `Subscription` that will listed to keyboard key presses and send this `PlayerPressedKey` message
+* Add a `Subscription` that will listen to keyboard key presses and send this `PlayerPressedKey` message
 
 * Adjust the `Update` function to react accordingly to our new `PlayerPressedKey` message
 
 Let's do this 🤘.
 
 ### ➕ Creating a new `Message`
+
+We can add the new message to our `Message.cs` file:
 
 ```csharp
 // 📃 Message.cs
@@ -264,9 +285,11 @@ public abstract record Message
 }
 ```
 
-Notice that the message can carry with it data. In this example the data that it carries is `ConsoleKeyInfo KeyInfo`. The subscription will force, via the constructor that you specify a `Message` which can carry this particular piece of data with it.
+Notice that the message carries data with it. In this example the data is a `ConsoleKeyInfo KeyInfo`. The subscription will force, via the constructor, that you specify a `Message` which can carry this particular piece of data with it.
 
 ### ➕ Subscribing to `ConsoleKeyPress`
+
+We can now modify our `Subscriptions.cs` file, to return a subscription to ElmSharp:
 
 ```csharp
 // 📃 Subscriptions.cs
@@ -285,15 +308,16 @@ public static partial class ElmFuncs
 }
 ```
 
-Okay, wow that's a mouthful piece of code, let's break it down. The way subscriptions work is that ElmSharp will manage them for you, but by the key of the returned dictionary.
+Okay, wow that's a mouthful piece of code, let's break it down. The way subscriptions work is that ElmSharp will use the dictionary key to manage them for you. The dictionary key is your unique identifier of a particular subscription configration.
 
-In this piece of code, we are simply returning a `Dictionary`. On our code base, nothing happens in terms of subscriptions. It will be ElmSharp itself that keep track of "Hey, you didn't have a subscription named 'banana' before, so let me wire that up for you. Also, I notice that you no longer returned a subscription named 'cat-alert', so I'll tear it down for you.". Behind the scenes, ElmSharp uses `Task`s and `CancellationToken`s to clean everything up, but as an ElmSharp user this is not something you need to worry about. Just keep in mind that if you keep the same `key`, ElmSharp won't make any subscription management for you.
+In this piece of code, we are returning a `Dictionary`. Always keep in mind that as a user, your code is pure. So constructing a subscription has no side-effects. It will be ElmSharp itself that keeps track of "Hey, you didn't have a subscription named 'banana' before, so let me wire that up for you. Also, I notice that you no longer returned a subscription named 'cat-alert', so I'll tear it down for you.". Behind the scenes, ElmSharp uses `Task`s and `CancellationToken`s to clean everything up, but as an ElmSharp user this is not something you need to worry about. Just keep in mind that if you keep the same `key`, ElmSharp won't make any subscription management for you.
 
-> 🐉 A potential cause for bugs: if you had a TimeSubscription (which takes a `TimeSpan` as the interval) which would depend on your model, you could fall victim of a bug. If you wish to change the TimeSpan, you should provide a new subscription name, so that ElmSharp can tear down the old subscription and wire up the new one with the new TimeSpan.
+> 🐉 A potential cause for bugs: if you make adjustments to the subscription instance, but keep the same key, ElmSharp won't do any management for you. Imagine you have a TimeSubscription (which takes a `TimeSpan` as the interval). Yet, you set the internal to be a number in your `Model`. If your code returns the same key, but different instances of the subscription each time, ElmSharp won't notice this, and it will keep the first subscription active and not the latest. 
+If you wished to have such a kind of subscription, make sure the key is constructed according to the parameters that make the subscription unique. Almost like the `Vary` paramater on a cache mechanism.
 
 ### 🔧 Adjusting the `Update` function
 
-We now have a `Message` to pattern match on, do let's add the code. We'll make it nice by leveraging an extension method on `Model` so that we don't clutter the `Update` function too much.
+We now have a `Message` to pattern match on, so let's add the code. We'll make it nice by leveraging an extension method on `Model` so that we don't clutter the `Update` function too much.
 
 ```csharp
 // 📃 Update.cs
@@ -325,13 +349,13 @@ public static partial class ElmFuncs
 
 ### 🚀 Taking the app for a spin
 
-Okay, so to recap we have setup a `Subscription` to key presses, we have created a `Message` to convey this key press, and we have adjusted our `Update` function to return a `StopAppCommand` when we see this `Q` key being pressed. If all goes well, we should be able to start our application and press keys and "nothing should happen" (you might see the console flicker a little depending on your terminal), but once we press `Q` on our keyboard, the app should exit.
+Okay, so to recap, we have setup a `Subscription` to key presses, we have created a `Message` to notify us about this key press, and we have adjusted our `Update` function to return a `StopAppCommand` when we see this `Q` key being pressed. If all goes well, we should be able to start our application and press keys and "nothing should happen" (you might see the console flicker a little depending on your terminal), but once we press `Q` on our keyboard, the app should exit. Like before, you can use `dotnet run` to try out the application.
 
 At least that's how it *works on my machine* 😜
 
 ### 🚶‍♂️ On to the next feature: guess a number
 
-As always, before we implement a new feature we should think a little on how we are going to break it down and approach it. We already have the `PlayerPressedKey` message, so that seems like a very good place to adjust our `Model` with the player's guess. Also, we should adjust the `View` function so that it shows to the player whether her guess is too high, too low of just right. For now we'll have unlimited guesses, and once the player guesses the number we should congratulate them and exit the application. Easy peasy, right?
+As always, before we implement a new feature we should think a little about how we are going to break it down and approach it. We already have the `PlayerPressedKey` message, so that seems like a very good place to adjust our `Model` with the player's guess. Also, we should adjust the `View` function so that it shows to the player whether her guess is too high, too low or just right. For now we'll have unlimited guesses, and once the player guesses the number we should congratulate them and exit the application. Easy peasy, right?
 
 ### 🔧 Adjusting the `Update` function
 
@@ -370,11 +394,11 @@ public static partial class ElmFuncs
 }
 ```
 
-We should now modify our `View` function, to show to the player what number she has guessed and if his guess is too high or too low.
+We should now modify our `View` function, to show to the player what number she has guessed and if her guess is too high or too low.
 
 ### 🔧 Adjusting the `View` function
 
-In our `Model` we are currently using `int? CurrentPlayerGuess` to hold either a `null` if the player hasn't guessed a number yet, or an `int` with the player's guess. Therefore we can have some branching logic on the `View` to display accordingly. Like before, we can leverage extension methods on `Model` to make the code a bit cleaner.
+In our `Model` we are currently using `int? CurrentPlayerGuess` to hold either a `null` if the player hasn't guessed a number yet, or an `int` with the player's guess. Therefore we can have some branching logic on the `View` to display this accordingly. Like before, we can leverage extension methods on `Model` to make the code a bit cleaner.
 
 ```csharp
 // 📃 View.cs
@@ -400,18 +424,16 @@ public static partial class ElmFuncs
         var guessQuality =
             (playerGuess < model.NumberToBeGuessed) ? "too low." :
             (playerGuess > model.NumberToBeGuessed) ? "too high." :
-            "🎉 Perfect! Congratulations!";
+            "perfect! Congratulations! (★‿★)";
 
         return $"\n  You guessed [{playerGuess}]. Your guess is {guessQuality}\n";
     }
 }
 ```
 
-> Depending on the terminal that you are using, the `🎉` emoji might either be correctly rendered or displayed as `??`. Emojis are hard, what can I tell you 🤷‍♂️.
-
 ### 🚀 Taking the app for another spin
 
-Okay, it is time to take this phenomenal game for a spin once again and see how it works. We can see that any input other than `0-9` or `Q` has no effect, and if we press the numbers on our keyboard (bug spoiler alert, the ones above the major key section, not the ones on the numpad to the right) we can see the game telling us "too high", "too low" or congratulating us for finding the ""secret"" number (wink wink 😜). We can note two improvements that we can make on our app:
+Okay, it is time to take this phenomenal game for a spin once again and see how it works. `dotnet run` is our friend. We can see that any input other than `0-9` or `Q` has no effect, and if we press the numbers on our keyboard (bug spoiler alert, the ones above the major key section, not the ones on the numpad to the right) we can see the game telling us "too high", "too low" or congratulating us for finding the ""secret"" number (wink wink 😜). We can take note of two improvements that we must make to our app:
 
 * The numbers on the numpad should also work as well
 
@@ -461,15 +483,17 @@ public static partial class ElmFuncs
 }
 ```
 
-### Exiting the game once the player found the correct number
+This refactor created the new `WithPlayerGuess` function, which is invoked from two different places on `OnPlayerPressedKey`.
+
+### 🤔 Exiting the game once the player found the correct number
 
 This is an interesting addition for two reasons:
 
-* If we would just return the `Cmd.StopAppWithCode(exitCode: 0)` from the `Update` function once the player guesses the correct number, then ElmSharp wouldn't render the `View` congratulating the player. Therefore we might want to have a 1 second timeout between the player guessing the number and the application exiting, to have a better experience (a normal game would have some sound or animation to celebrate)
+* If we would just return the `Cmd.StopAppWithCode(exitCode: 0)` from the `Update` function once the player guesses the correct number, then ElmSharp wouldn't render the `View` congratulating the player. Therefore we might want to have a 1 second timeout between the player guessing the number and the application exiting. This provides a nicer experience: a normal game would have some sound or animation to celebrate victory
 
-* If we add a timeout between the correct guessing and the game exiting, there is a chance the player presses another guess. That would be awkward, so we should adjust our `Update` function to no longer take any guesses after we have the correct one
+* If we add a timeout between the correct guessing and the game exiting, there is a chance the player presses another guess. That would be awkward, so we should adjust our `Update` function to no longer take any guesses after we have the correct one (the reason we don't just unsubscribe from keypresses altogether is to allow the player to still use `Q` to quit the game)
 
-Therefore, here we go again.
+Therefore, here we go again. 🔄
 
 ### 🚫 No longer taking guesses after the correct guess
 
@@ -489,7 +513,7 @@ For this one we simply need to adjust our `Update` function, specifically the `W
 
 In this change I am using the [ternary conditional operator](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/conditional-operator) but this is a syntax preference of mine. You could use the more "normal" `if ... return` syntax if you prefer 🙂.
 
-### 🎉 Exiting the game a few seconds after the correct guess
+### ⏳ Exiting the game a few seconds after the correct guess
 
 For exiting the game a few seconds after the correct guess, these are the high-level steps that we need to take:
 
@@ -519,7 +543,7 @@ public abstract record Message
 
 ### 🔧 Adjusting the `Update` function to handle `TimeoutElapsed`
 
-This should be getting a bit easier and more mechanical by now. Here is our updated `Update.cs` file, where we now handle the `TimeoutElapsed` message:
+This should be getting a bit easier and more mechanical by now. Here are the changes we need to perform on our `Update.cs` file, to handle the `TimeoutElapsed` message:
 
 ```csharp
 // 📃 Update.cs
@@ -533,15 +557,18 @@ This should be getting a bit easier and more mechanical by now. Here is our upda
     };
 
     //...
+
     internal static (Model, Cmd) OnTimeoutElapsed(
         this Model model) =>
         (model, Cmd.StopAppWithCode(exitCode: 0));
+    
+    // ...
 // ...
 ```
 
 ### 🔧 Adjusting the `Update` function to return `SetTimeoutCommand` when the player guesses the number
 
-ElmSharp has a few built-in commands, and we are now interested on the `SetTimeoutCommand`. Let's return this command from our `Update` function when we detect that the player has entered the correct guess:
+ElmSharp has a few built-in commands, and we are now interested on the `SetTimeoutCommand`. Let's return this command from our `Update` function when we detect that the player has entered the correct guess. For this, we modify the `WithPlayerGuess` function we had before (getting rid of the ternary conditional operator):
 
 ```csharp
 // 📃 Update.cs
@@ -566,7 +593,7 @@ ElmSharp has a few built-in commands, and we are now interested on the `SetTimeo
 
 ### 🚀 Taking the app for yet another spin
 
-By now our game has a few features (but it's not complete yet!). The player can exit the game. The player can guess a number and the game will let the player know if their guess is too high or too low. And finally, the game congratulates the player for finding the correct number and gracefully exits after a period of time.
+By now our game has a few features (but it's not complete yet!). The player can exit the game. The player can guess a number and the game will let the player know if their guess is too high or too low. And finally, the game congratulates the player for finding the correct number and gracefully exits after a period of time. Let's use `dotnet run` once more.
 
 At least that's how it *works on my machine* 😁
 
@@ -574,18 +601,18 @@ There is only one final thing to do for now: we need a way for the secret number
 
 Yes, in the `Init` function. But remember, the `Init` function, just like all the others, needs to be **pure**. 
 
-> Did you notice that all the functions we wrote so far are **pure**? A pure function is a function that given the same inputs will **always** return the same outputs. Which is a fancy way of saying it has no "tentacles" or dependencies to the external world/state. We accomplish this by not using impure methods, such as `DateTime.Now` or `Random` or `Guid.NewGuid()` etc. 
-Every time we need to do such impure business we use a `Command` to do it, and the command generates a pure `Message` so that we can get back to a pure implementation of `Update`. This applies to everything, HTTP requests, randomness, datetime, etc. 
+> ℹ Did you notice that all the functions we wrote so far are **pure**? A pure function is a function that given the same inputs will **always** return the same output. Which is a fancy way of saying it has no "tentacles" or dependencies to the external world/state. We accomplish this by not using impure methods, such as `DateTime.Now`, `Random`, `Guid.NewGuid()` etc. 
+Every time we need to do such impure business we use a `Command` to do it, and the command generates a pure `Message` so that we can get back to a pure implementation of `Update`. This applies to everything: HTTP requests, randomness, datetime, etc. 
 If you think about it, and you have some TDD experience, you will notice that TDD compels you to remove all impurity from your methods, so they can be instrumented and tested. What we have accomplished with ElmSharp is an architecture (the elm architecture) that forces us to stay pure. I guess you can see how testing these pure functions then becomes a trivial matter: no dependency injection, no fancy business: you construct a `Model`, you construct a `Message`, invoke the `Update` function and assert against the output. Same thing goes for the `View` function.
 Notice how `Update` isn't even `async/await` because it really doesn't have the capability of going out into the world and do ..who knows what... Fun stuff, no? 🙂
 
-Ah, back to the problem at hand, generating a random number between 0 and 9. Let's use another built-in command: `Cmd.GetRandomNumberCommand` which leverages the `System.Security.Cryptography.RandomNumberGenerator` to do its thing.
+So, back to the problem at hand: generating a random number between 0 and 9. Let's use another built-in command: `Cmd.GetRandomNumberCommand` which leverages the `System.Security.Cryptography.RandomNumberGenerator` to do its thing.
 
 Of course this also means we need a new `Message` to get the new secret number into our `Model` (via the `Update` function).
 
 ### ➕ Adding a `SecretNumberPicked` message
 
-You know the drill by now 🙂
+You know the drill by now 🙂 We add the new message to the `Message.cs` file:
 
 ```csharp
 // 📃 Message.cs
@@ -599,6 +626,8 @@ public abstract record Message
 ```
 
 ### 🔧 Adjust the `Init` function to request a random number
+
+We apply the necessary changes on our `Init.cs` file:
 
 ```csharp
 // 📃 Init.cs
@@ -624,7 +653,7 @@ public static partial class ElmFuncs
 
 ### 🔧 Handling the `SecretNumberPicked` in the `Update` function
 
-Hopefully this is getting easier by the minute:
+Hopefully this is getting easier by the minute. Just a few modifications on our `Update.cs` file:
 
 ```csharp
 // 📃 Update.cs
@@ -643,7 +672,9 @@ Hopefully this is getting easier by the minute:
 
 ### 🚀 Taking the app for the final spin
 
-If you take the app for a spin now, you should see that, unless you are very unlucky, `3` is no longer the secret number. You can now play the game as expected and see how long it takes you to find a random number between 0 and 9.
+For one final time, `dotnet run` allows us to take this app to the races.
+
+Hopefully (unless you are very unlucky) `3` is no longer the secret number. You can now play the game as expected and see how long it takes you to find a random number between 0 and 9.
 
 In the end, the game wasn't the goal: the goal was to get a clearer understanding of the elm architecture and how you can leverage it for the challenges that lie ahead. As said many times throughout the industry, there are no silver bullets. This isn't an answer to all problems, but I do find the constraints quite liberating. I can understand if you have feelings of "boilerplate overkill" due to having to create a `Message` and then modify the `Update` and then the `View` etc, but if you have a honest look, this is also what must be done in any decent size software project.
 

@@ -21,7 +21,7 @@ public static partial class ElmFuncs
         var guessQuality =
             (playerGuess < model.NumberToBeGuessed) ? "too low." :
             (playerGuess > model.NumberToBeGuessed) ? "too high." :
-            "🎉 Perfect! Congratulations!";
+            "perfect! Congratulations! (★‿★)";
 
         return $"\n  You guessed [{playerGuess}]. Your guess is {guessQuality}\n";
     }
