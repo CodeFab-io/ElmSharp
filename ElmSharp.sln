@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{11
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuessingGame", "examples\GuessingGame\GuessingGame.csproj", "{9ABCC66D-51BF-4122-8E07-DC7483F49B22}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GuessingGame-Tests", "examples\GuessingGame-Tests\GuessingGame-Tests.csproj", "{DC69C648-0EFD-4B66-9A1A-618D93C85F7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,12 +25,17 @@ Global
 		{9ABCC66D-51BF-4122-8E07-DC7483F49B22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9ABCC66D-51BF-4122-8E07-DC7483F49B22}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9ABCC66D-51BF-4122-8E07-DC7483F49B22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC69C648-0EFD-4B66-9A1A-618D93C85F7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC69C648-0EFD-4B66-9A1A-618D93C85F7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC69C648-0EFD-4B66-9A1A-618D93C85F7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC69C648-0EFD-4B66-9A1A-618D93C85F7C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9ABCC66D-51BF-4122-8E07-DC7483F49B22} = {115D3D6A-0E66-4C56-BA0E-EC4A7ACC17F9}
+		{DC69C648-0EFD-4B66-9A1A-618D93C85F7C} = {115D3D6A-0E66-4C56-BA0E-EC4A7ACC17F9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6870EAC5-0DBA-4478-88D2-F57435382EEA}
