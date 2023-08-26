@@ -20,6 +20,69 @@ You can think of a `Message` as a *fact*: "the user clicked on this button", "ti
 
 You can think of a `Command` as an *intention* to affect or obtain information from the world: "can you please run this HTTP request?", "can you please tell me the time?", "can you please give me a random number between 0 and 100?", "I would like a new Guid, please".
 
+## 📚 What is the implicit loop of an ElmSharp application?
+
+Just like the Elm architecture, there in an implicit loop that ElmSharp's runtime handles for you. From a high level standpoint, it goes something like this:
+
+```mermaid
+sequenceDiagram
+    ElmSharp->>+User: Init()
+    User->>-ElmSharp: state=📦, cmd=🙏
+    Note over ElmSharp: ElmSharp remembers<br/>state=📦, cmd=🙏
+
+    opt Subscription management
+        ElmSharp->>+User: Subscriptions(state: 📦)
+        User->>-ElmSharp: desiredSubs = [⌚, ⌨, ☎]
+        Note over ElmSharp: ElmSharp subscribes to<br/>the desired subscriptions,<br/> if any
+        ElmSharp-->>+Subs: 👂 Activate subscription(📫)
+        Subs-->>-MailBox: ✉ Subscription event
+    end
+
+    loop while cmd != StopApp
+        ElmSharp-->>+Cmds: 🏃‍♂️ Run command (📫)
+        Cmds->>-MailBox: ✉ Cmd result
+
+        ElmSharp->>+User: View(state: 📦, 📫)
+        User-->>MailBox: ✉ User performed action
+        User->>-ElmSharp: 🎨 View representation
+
+        Note over ElmSharp: ElmSharp renders the view<br/>(only command line<br/>supported, for the time being)
+
+        ElmSharp->>+MailBox: ⌛ Wait for a message...
+        MailBox->>-ElmSharp: ✉ Message
+
+        ElmSharp->>+User: Update(msg: ✉, state: 📦)
+        User->>-ElmSharp: state=🍺, cmd=🌍
+        Note over ElmSharp: ElmSharp remembers<br/>state=🍺, cmd=🌍
+
+        opt Subscription management
+            ElmSharp->>+User: Subscriptions(state: 🍺)
+            User->>-ElmSharp: desiredSubs = [👮‍♂️, 🚨]
+            Note over ElmSharp: ElmSharp compares the delta<br/>before previous subscriptions<br/>and the new desired ones<br/> subscribing to new ones and<br/>unsubscribing from old ones
+            ElmSharp-->>Subs: ❌ Unsubscribe
+            ElmSharp-->>Subs: 👂 Activate subscription(📫)
+        end
+    end
+
+    ElmSharp-->>Subs: ❌ Unsubscribe
+
+    ElmSharp->>User: 🚪 Exit with StopApp status code
+```
+
+Explaining it on a textual level: when an ElmSharp application starts (User runs `await ElmSharp<Model, Message>.Run(...)`), ElmSharp internally sets up a mailbox (leveraging `System.Threading.Channels`). This mailbox has a `Write` mechanism, called the `dispatcher`. ElmSharp then calls the user's `Init()` function, which returns a `Model` instance and a `Command` to be executed. ElmSharp stores this instance of the `Model` as the current state (the words `Model` and state are used somewhat interchangeably in this document).
+
+Now that ElmSharp has the current state, it once again reaches to the user code via the `Subscriptions` function. This function will return a list of desired subscriptions, so that ElmSharp can perform the wiring up of these subscriptions. Wiring up a subscription consists of creating a new `CancellationTokenSource` per subscription and invoking the internal `Subscribe` method on the subscription instance, which receives a `CancellationToken` and the `dispatcher`. The subscriptions themselves are executed as non awaited `Task`s so they don't block ElmSharp's main loop. A subscription communicates with the user via the aforementioned mailbox (leveraging the `dispatcher`).
+
+ElmSharp now enters a `while(true)` loop. Inside it, ElmSharp first looks at the `Command` returned by the user. If the command is the `StopAppCommand` we break out of the loop, unsubscribe for any existing subscriptions and return from the `await .Run(...)` method with the same status code as requested on the StopAppCommand. Otherwise, this is a normal `Command` and ElmSharp will invoke its `Run` method, much like what happened with the subscriptions, above. One big difference is that while a Subscription has access to the `dispatcher` and therefore can create multiple messages, a `Command` doesn't: a `Command` can only return the appropriate `Message` indicating its success or failures (semantics vary per command, ElmSharp doesn't distinguish between success or failure). This returned messaged is then dispatched to the mailbox. Commands also execute as non awaited `Task`, which means they don't block ElmSharp's loop.
+
+One further step is the `View` function, where ElmSharp once again reaches to user code and provides the current state, as well as the `dispatcher`. This allows the user to build user interfaces which can themselves dispatch messages into ElmSharp's mailbox. The `View` aspect of ElmSharp is still an area under development, and for now only Console Applications are supported. Due to their nature, console applications do not leverage the `dispatcher` of the `View` function.
+
+Finally, ElmSharp will await for a message in the mailbox, which signals that something of interest has happened. Remember, a message can come from the `View`, or the result of a `Command` or from a `Subscription`. Once ElmSharp receives this message, it will invoke the user's `Update` function. This function receives this `Message` as well as the current `Model`. The job of this function, much like the `Init()` function is to return a new instance of the `Model` as well as any `Command` that should be executed.
+
+As the last step, since the `Model` has potentially been modified by the `Update()` function, ElmSharp will once again invoke the `Subscriptions()` function, applying the logic described above . And the loop repeats.
+
+## 🤔 What does it mean creating an ElmSharp application?
+
 There are two worlds in an ElmSharp application: the runtime world and the user world. You are the user, the creator of awesome ElmSharp applications.
 
 As a user, your job consists of:
