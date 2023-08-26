@@ -103,7 +103,7 @@ As a user, your job consists of:
 
 ## 🧠 Some ground rules
 
-As with any architecture, we can only reap benefits if we follow the ground rules associated with tit. For both Elm and ElmSharp's architecture there is one fundamental ground rule: **immutability**. In Elm this is trivial, because the language itself doesn't have any mutability "escape hatches". C# however, has plenty of those 😅. This means that just like TDD or SOLID enforce certain practices to reap any benefits, ElmSharp's architecture requires the `Model` to be fully immutable. Without this rule, there won't just be dragons, there will be d̵r̴a̵g̴o̸n̸s̶ ̷w̶h̸a̷t̴ ̶i̸s̴ ̴h̴a̵p̶p̶e̴n̷i̴n̴g̸,̴ ̷o̶h̴ ̷n̴o̴o̶o̴. You have been warned 🐲😁
+As with any architecture, we can only reap benefits if we follow the ground rules associated with it. For both Elm and ElmSharp's architecture there is one fundamental ground rule: **immutability**. In Elm this is trivial, because the language itself doesn't have any mutability "escape hatches". C# however, has plenty of those 😅. This means that just like TDD or SOLID enforce certain practices to reap any benefits, ElmSharp's architecture requires the `Model` to be fully immutable. Without this rule, there won't just be dragons, there will be d̵r̴a̵g̴o̸n̸s̶ ̷w̶h̸a̷t̴ ̶i̸s̴ ̴h̴a̵p̶p̶e̴n̷i̴n̴g̸,̴ ̷o̶h̴ ̷n̴o̴o̶o̴. You have been warned 🐲😁
 
 ## ❓ How does the code look like?
 
