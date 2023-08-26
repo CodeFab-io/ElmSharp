@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Threading.Channels;
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo($"{nameof(ElmSharp)}-Tests")]
 
 namespace ElmSharp;
 
