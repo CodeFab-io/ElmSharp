@@ -6,6 +6,11 @@ public static partial class ElmSharp<TModel, TMessage>
 {
     public abstract partial class Command 
     {
+        /// <summary>
+        /// This command will generate a new random number between <see cref="FromInclusive"/> and <see cref="ToExclusive">.
+        /// Internally uses <see cref="RandomNumberGenerator.GetInt32(int, int)"/>.
+        /// If ToExclusive is lower or equal to FromInclusive, FromInclusive will be returned.
+        /// </summary>
         public sealed class GetRandomNumberCommand : RunnableCommand 
         { 
             public int FromInclusive { get; init; }
