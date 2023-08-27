@@ -18,9 +18,12 @@ public static partial class ElmSharp<TModel, TMessage>
 
             public override Task<TMessage?> Run()
             {
-                var randomNumber = RandomNumberGenerator.GetInt32(
-                    fromInclusive: FromInclusive,
-                    toExclusive: ToExclusive);
+                var randomNumber = 
+                    ToExclusive <= FromInclusive 
+                    ? FromInclusive 
+                    : RandomNumberGenerator.GetInt32(
+                        fromInclusive: FromInclusive,
+                        toExclusive: ToExclusive);
 
                 var message = OnRandomNumberGenerated(randomNumber);
 
