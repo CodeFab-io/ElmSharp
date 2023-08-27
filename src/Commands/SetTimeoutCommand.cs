@@ -17,7 +17,9 @@ public static partial class ElmSharp<TModel, TMessage>
 
             public override async Task<TMessage?> Run()
             {
-                await Task.Delay(TimeoutDuration);
+                if (TimeoutDuration > TimeSpan.Zero)
+                    await Task.Delay(TimeoutDuration);
+
                 return OnTimeoutElapsed();
             }
         }
