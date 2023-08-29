@@ -1,0 +1,2 @@
+﻿[assembly: System.Runtime.CompilerServices.InternalsVisibleTo($"{nameof(ElmSharp)}.{nameof(ElmSharp.ConsoleUI)}-Tests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo($"{nameof(ElmSharp)}.{nameof(ElmSharp.ConsoleUI)}-Playground")]
