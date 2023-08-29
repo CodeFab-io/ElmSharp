@@ -108,7 +108,11 @@ internal static class Utils
         };
     }
 
-    internal static ImmutableList<string> RenderRow(Row row, Context context) {
+    internal static ImmutableList<string> RenderRow(Row row, Context context) 
+    {
+        if (row.Elements.Count == 0)
+            return ImmutableList<string>.Empty;
+
         // First let's determine how wide each element needs to be (for now, fair sizing)
         var elementWidth = (int)(context.AvailableWidth / row.Elements.Count);
 
@@ -116,21 +120,50 @@ internal static class Utils
 
         var columnSizes = elementRows.Select(rows => rows.Max(row => row.Length)).ToImmutableList();
 
-        return Enumerable
+        Func<char, char, char, char, string> makeLine = (left, line, col, right) =>
+            columnSizes
+            .Aggregate(new StringBuilder().Append(left), (acc, colSize) => acc.Append(new string(line, colSize)).Append(col))
+            .Do(strBuilder => strBuilder.Remove(strBuilder.Length - 1, 1))
+            .Append(right)
+            .ToString();
+
+        var (headerLine, columnLine, bottomLine) = row.Attributes.Border switch
+        {
+            Border.ThinBorder   => (makeLine('┌', '─', '┬', '┐'), "│", makeLine('└', '─', '┴', '┘')),
+            Border.DoubleBorder => (makeLine('╔', '═', '╦', '╗'), "║", makeLine('╚', '═', '╩', '╝')),
+            _ => (string.Empty, string.Empty, string.Empty),
+        };
+
+        var toReturn = 
+            Enumerable
             .Range(0, elementRows.Max(r => r.Count))
             .Aggregate(
                 ImmutableList<string>.Empty, 
                 (acc, rowIndex) => { 
                     var lineBuilder = new StringBuilder();
 
-                    for (var colIndex = 0; colIndex < row.Elements.Count; colIndex++) {
-                        lineBuilder.Append(
-                            elementRows[colIndex].Count <= rowIndex
-                            ? new string(' ', columnSizes[colIndex])
-                            : elementRows[colIndex][rowIndex]);
-                    }
-
-                    return acc.Add(lineBuilder.ToString());
+                    for (var colIndex = 0; colIndex < row.Elements.Count; colIndex++) 
+                        lineBuilder
+                            .Append(columnLine)
+                            .Append(
+                                elementRows[colIndex].Count <= rowIndex
+                                ? new string(' ', columnSizes[colIndex])
+                                : elementRows[colIndex][rowIndex]);
+                    
+                    return acc.Add(lineBuilder.Append(columnLine).ToString());
                 });
+
+        if (!string.IsNullOrWhiteSpace(headerLine))
+            return toReturn.Insert(0, headerLine).Add(bottomLine);
+
+        return toReturn;
+    }
+
+    internal static T Do<T>(this T subject, Action<T> action) 
+    {
+        if (subject != null && action != null)
+            action(subject);
+
+        return subject;
     }
 }
