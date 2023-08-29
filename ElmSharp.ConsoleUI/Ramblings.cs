@@ -1,8 +1,10 @@
-﻿namespace ElmSharp.ConsoleUI
+﻿using System.Collections.Immutable;
+
+namespace ElmSharp.ConsoleUI
 {
     public abstract record UIElement()
     {
-        public sealed record Label(string Text, Label.LabelAttributes Attributes) : UIElement()
+        public sealed record Label(Label.LabelAttributes Attributes, string Text) : UIElement()
         {
             public sealed record LabelAttributes(
                 ConsoleColor? ForegroundColor,
@@ -15,6 +17,17 @@
                         BackgroundColor: default,
                         Border: Border.None,
                         TextAlign: TextAlign.Left);
+            }
+        }
+
+        public sealed record Row(Row.RowAttributes Attributes, ImmutableList<UIElement> Elements) : UIElement() 
+        {
+            public Row(RowAttributes Attributes, params UIElement[] Elements) : this(Attributes, Elements.ToImmutableList()) { }
+
+            public sealed record RowAttributes(Border Border) 
+            { 
+                public static readonly RowAttributes Default =
+                    new(Border: Border.None);
             }
         }
     }
