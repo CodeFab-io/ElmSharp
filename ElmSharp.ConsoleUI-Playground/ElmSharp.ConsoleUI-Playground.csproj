@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ElmSharp.ConsoleUI\ElmSharp.ConsoleUI.csproj" />
+    <ProjectReference Include="..\src\ElmSharp.csproj" />
   </ItemGroup>
 
 </Project>

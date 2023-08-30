@@ -1,0 +1,2 @@
+﻿global using Cmd = ElmSharp.ElmSharp<ElmSharp.ConsoleUI_Playground.Model, ElmSharp.ConsoleUI_Playground.Message>.Command;
+global using Sub = ElmSharp.ElmSharp<ElmSharp.ConsoleUI_Playground.Model, ElmSharp.ConsoleUI_Playground.Message>.Subscription;
