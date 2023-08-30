@@ -9,7 +9,7 @@ public static partial class ElmSharp<TModel, TMessage>
     public static async Task<int> Run(
         Func<(TModel, Command)> init,
         Func<TMessage, TModel, (TModel, Command)> update,
-        Func<TModel, Action<TMessage>, object> view,
+        Action<TModel, Action<TMessage>> view,
         Func<TModel, ImmutableDictionary<string, Subscription>> subscriptions,
         CancellationToken cancellationToken = default)
     {
@@ -31,7 +31,7 @@ public static partial class ElmSharp<TModel, TMessage>
 
             RunCmd(cmd, dispatcher, cancellationToken);
 
-            await Render(view(model, dispatcher));
+            view(model, dispatcher);
 
             var message = await mailbox.Reader.ReadAsync(cancellationToken);
 
@@ -46,7 +46,7 @@ public static partial class ElmSharp<TModel, TMessage>
     public static Task<int> RunWithFlags<TFlags>(
         Func<TFlags, (TModel, Command)> init,
         Func<TMessage, TModel, (TModel, Command)> update,
-        Func<TModel, Action<TMessage>, object> view,
+        Action<TModel, Action<TMessage>> view,
         Func<TModel, ImmutableDictionary<string, Subscription>> subscriptions,
         TFlags flags,
         CancellationToken cancellationToken = default) =>
@@ -55,19 +55,6 @@ public static partial class ElmSharp<TModel, TMessage>
                 view: view,
                 subscriptions: subscriptions,
                 cancellationToken: cancellationToken);
-
-    static async Task Render(object viewResult) 
-    {
-        if (viewResult is string viewResultStr)
-        {
-            Console.Clear();
-            await Console.Out.WriteLineAsync(viewResultStr);
-        }
-        else 
-        {
-            await Console.Error.WriteLineAsync($"Unable to render viewResult of type [{viewResult.GetType().Name}]");
-        }
-    }
 
     #region Commands
 
