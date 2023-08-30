@@ -43,6 +43,19 @@ public static partial class ElmSharp<TModel, TMessage>
         }
     }
 
+    public static Task<int> RunWithFlags<TFlags>(
+        Func<TFlags, (TModel, Command)> init,
+        Func<TMessage, TModel, (TModel, Command)> update,
+        Func<TModel, Action<TMessage>, object> view,
+        Func<TModel, ImmutableDictionary<string, Subscription>> subscriptions,
+        TFlags flags,
+        CancellationToken cancellationToken = default) =>
+            Run(init: () => init(flags),
+                update: update,
+                view: view,
+                subscriptions: subscriptions,
+                cancellationToken: cancellationToken);
+
     static async Task Render(object viewResult) 
     {
         if (viewResult is string viewResultStr)
