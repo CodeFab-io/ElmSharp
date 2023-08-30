@@ -113,8 +113,10 @@ internal static class Utils
         if (row.Elements.Count == 0)
             return ImmutableList<string>.Empty;
 
+        var availableWidthAfterBorder = context.AvailableWidth - (row.Attributes.Border is Border.NoBorder ? 0 : row.Elements.Count + 1);
+
         // First let's determine how wide each element needs to be (for now, fair sizing)
-        var elementWidth = (int)(context.AvailableWidth / row.Elements.Count);
+        var elementWidth = (int)Math.Floor(decimal.Divide(availableWidthAfterBorder, row.Elements.Count));
 
         var elementRows = row.Elements.Select(el => Render(el, context with { AvailableWidth = (uint)elementWidth })).ToImmutableList();
 
