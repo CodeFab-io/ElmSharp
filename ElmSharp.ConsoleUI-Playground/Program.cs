@@ -2,7 +2,9 @@
 using ElmSharp.ConsoleUI;
 using ElmSharp.ConsoleUI_Playground;
 
-using static ElmSharp.ConsoleUI.UIElement.ColoredText;
+using static ElmSharp.ConsoleUI.Border;
+using static ElmSharp.ConsoleUI.TextAlign;
+using static ElmSharp.ConsoleUI.UIElement.Paragraph.ParagraphAttributes;
 using static System.ConsoleColor;
 
 await ElmSharp<Model, Message>.RunWithFlags<Flags>(
@@ -25,5 +27,6 @@ await ElmSharp<Model, Message>.RunWithFlags<Flags>(
 
 static UIElement View(Model model) =>
     new UIElement.Paragraph(
+        Default with { Border = Double(Yellow), TextAlign = Center, },
         "This text has the console default color and then some text in ", "red".WithColor(Red),", ", 
         "cyan".WithColor(Cyan), " and ",  "green".WithColor(Green), ".");

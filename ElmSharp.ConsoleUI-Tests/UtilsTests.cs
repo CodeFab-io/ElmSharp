@@ -1,27 +1,16 @@
 using ElmSharp.ConsoleUI;
-
 using System.Collections.Immutable;
 
-using static ElmSharp.ConsoleUI.UIElement.ColoredText;
+using static ElmSharp.ConsoleUI.UIElement;
+using static System.ConsoleColor;
 
 namespace ElmSharp.ConsoleUI_Tests;
 
 public class UtilsTests
 {
-    //[Theory]
-    //[InlineData("", 100, "")]
-    //[InlineData("abcdef", 3, "abc\ndef")]
-    //[InlineData("abcdef", 2, "ab\ncd\nef")]
-    //[InlineData("ab cd ef", 2, "ab\ncd\nef")]
-    //[InlineData("ab cd ef", 3, "ab \ncd \nef")]
-    //[InlineData("ab cd ef", 4, "ab \ncd \nef")]
-    //[InlineData("This is a normal sentence", 10, "This is a \nnormal \nsentence")]
-    //public void ReflowTests(string example, uint maxWidth, string expected) =>
-    //    Assert.Equal(expected.Split("\n"), Utils.StringReflow(example, context: new(AvailableWidth: maxWidth)));
-
     [Theory]
     [MemberData(nameof(ParagraphReflowTests_Data))]
-    public void ParagraphReflowTests(UIElement.ColoredText[] input, uint maxWidth, UIElement.ColoredText[][] expected) 
+    public void ParagraphReflowTests(ColoredText[] input, uint maxWidth, UIElement.ColoredText[][] expected) 
     {
         var result = Utils.ParagraphReflow(
             input: input.ToImmutableList(),
@@ -35,26 +24,26 @@ public class UtilsTests
 
     public static IEnumerable<object[]> ParagraphReflowTests_Data =>
         new[] {
-            new object[] { new[] { Simple("") }, 100u, new UIElement.ColoredText[][] { new[] { Simple("") } } },
+            new object[] { new ColoredText[] { "" }, 100u, new ColoredText[][] { new ColoredText[] { new ("") } } },
 
-            new object[] { new[] { Simple("abcdef") }, 3u, new UIElement.ColoredText[][] { new[] { Simple("abc") }, new[] { Simple("def") } } },
-            new object[] { new[] { Red("abcdef") }, 3u, new UIElement.ColoredText[][] { new[] { Red("abc") }, new[] { Red("def") } } },
+            new object[] { new ColoredText[] { "abcdef" }, 3u, new ColoredText[][] { new ColoredText[] { new("abc") }, new ColoredText[] { new("def") } } },
+            new object[] { new ColoredText[] { "abcdef".WithColor(Red) }, 3u, new ColoredText[][] { new ColoredText[] { new("abc", Red) }, new ColoredText[] { new("def", Red) } } },
 
-            new object[] { new[] { Simple("abcdef") }, 2u, new UIElement.ColoredText[][] { new[] { Simple("ab") }, new[] { Simple("cd") }, new[] { Simple("ef") } } },
-            new object[] { new[] { Red("abcdef") }, 2u, new UIElement.ColoredText[][] { new[] { Red("ab") }, new[] { Red("cd") }, new[] { Red("ef") } } },
+            new object[] { new ColoredText[] { "abcdef" }, 2u, new ColoredText[][] { new ColoredText[] { new("ab") }, new ColoredText[] { new("cd") }, new ColoredText[] { new("ef") } } },
+            new object[] { new ColoredText[] { "abcdef".WithColor(Red) }, 2u, new ColoredText[][] { new ColoredText[] { new("ab", Red) }, new ColoredText[] { new("cd", Red) }, new ColoredText[] { new("ef", Red) } } },
 
-            new object[] { new[] { Simple("ab cd ef") }, 2u, new UIElement.ColoredText[][] { new[] { Simple("ab") }, new[] { Simple("cd") }, new[] { Simple("ef") } } },
-            new object[] { new[] { Red("ab cd ef") }, 2u, new UIElement.ColoredText[][] { new[] { Red("ab") }, new[] { Red("cd") }, new[] { Red("ef") } } },
+            new object[] { new ColoredText[] { ("ab cd ef") }, 2u, new ColoredText[][] { new ColoredText[] { new("ab") }, new ColoredText[] { new("cd") }, new ColoredText[] { new("ef") } } },
+            new object[] { new ColoredText[] { "ab cd ef".WithColor(Red) }, 2u, new ColoredText[][] { new ColoredText[] { new("ab", Red) }, new ColoredText[] { new("cd", Red) }, new ColoredText[] { new("ef", Red) } } },
 
-            new object[] { new[] { Simple("ab cd ef") }, 3u, new UIElement.ColoredText[][] { new[] { Simple("ab ") }, new[] { Simple("cd ") }, new[] { Simple("ef") } } },
-            new object[] { new[] { Red("ab cd ef") }, 3u, new UIElement.ColoredText[][] { new[] { Red("ab ") }, new[] { Red("cd ") }, new[] { Red("ef") } } },
+            new object[] { new ColoredText[] { "ab cd ef" }, 3u, new ColoredText[][] { new ColoredText[] { new("ab ") }, new ColoredText[] { new("cd ") }, new ColoredText[] { new("ef") } } },
+            new object[] { new ColoredText[] { "ab cd ef".WithColor(Red) }, 3u, new ColoredText[][] { new ColoredText[] { new("ab ", Red) }, new ColoredText[] { new("cd ", Red) }, new ColoredText[] { new("ef", Red) } } },
 
-            new object[] { new[] { Simple("ab cd ef") }, 4u, new UIElement.ColoredText[][] { new[] { Simple("ab ") }, new[] { Simple("cd ") }, new[] { Simple("ef") } } },
-            new object[] { new[] { Red("ab cd ef") }, 4u, new UIElement.ColoredText[][] { new[] { Red("ab ") }, new[] { Red("cd ") }, new[] { Red("ef") } } },
+            new object[] { new ColoredText[] { "ab cd ef" }, 4u, new ColoredText[][] { new ColoredText[] { new("ab ") }, new ColoredText[] { new("cd ") }, new ColoredText[] { new("ef") } } },
+            new object[] { new ColoredText[] { "ab cd ef".WithColor(Red) }, 4u, new ColoredText[][] { new ColoredText[] { new("ab ", Red) }, new ColoredText[] { new("cd ", Red) }, new ColoredText[] { new("ef", Red) } } },
 
-            new object[] { new[] { Simple("This is a normal sentence") }, 10u, new UIElement.ColoredText[][] { new[] { Simple("This is a ") }, new[] { Simple("normal ") }, new[] { Simple("sentence") } } },
-            new object[] { new[] { Red("This is a normal sentence") }, 10u, new UIElement.ColoredText[][] { new[] { Red("This is a ") }, new[] { Red("normal ") }, new[] { Red("sentence") } } },
+            new object[] { new ColoredText[] { "This is a normal sentence" }, 10u, new ColoredText[][] { new ColoredText[] { new("This is a ") }, new ColoredText[] { new("normal ") }, new ColoredText[] { new("sentence") } } },
+            new object[] { new ColoredText[] { "This is a normal sentence".WithColor(Red) }, 10u, new ColoredText[][] { new ColoredText[] { new ("This is a ", Red) }, new ColoredText[] { new("normal ", Red) }, new ColoredText[] { new("sentence", Red) } } },
 
-            new object[] { new[] { Simple("Simple "), Red("Red "), Cyan("Cyan"), }, 100u, new UIElement.ColoredText[][] { new[] { Simple("Simple "), Red("Red "), Cyan("Cyan"), } } },
+            new object[] { new ColoredText[] { "Simple ", "Red ".WithColor(Red), "Cyan".WithColor(Cyan), }, 100u, new ColoredText[][] { new ColoredText[] { new("Simple "), new("Red ", Red), new("Cyan", Cyan), } } },
         };
 }
