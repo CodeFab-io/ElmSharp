@@ -10,11 +10,11 @@ internal sealed record Context(
 
 internal static class Utils
 {
-    internal static ImmutableList<ImmutableList<ColoredText>> Render(UIElement element, Context context) => element switch
-    {
-        Paragraph p => RenderParagraph(p, context),
-        //Row row => RenderRow(row, context),
-    };
+    internal static ImmutableList<ImmutableList<ColoredText>> Render(UIElement element, Context context) =>
+        UIElement.Map(
+            element,
+            whenRow: row => RenderRow(row, context),
+            whenParagraph: paragraph => RenderParagraph(paragraph, context));
 
     internal static ImmutableList<ImmutableList<ColoredText>> ParagraphReflow(ImmutableList<ColoredText> input, Context context)
     {
@@ -112,7 +112,7 @@ internal static class Utils
 
         return Border.Map(
             paragraph.Attributes.Border,
-            whenNoBorder: () => reflownParagraph,
+            whenNoBorder: () => reflownParagraph.Select(alignLine).ToImmutableList(),
             whenThinBorder: borderInfo => makeBorder(borderInfo.Color, '┌', '─', '┐', '│', '└', '┘'),
             whenDoubleBorder: borderInfo => makeBorder(borderInfo.Color, '╔', '═', '╗', '║', '╚', '╝'));
 
@@ -143,58 +143,59 @@ internal static class Utils
                 .Add(ImmutableList<ColoredText>.Empty.Add(new($"{lb}{h}{new(h, widestLine)}{h}{rb}", color)));
     }
 
-    //internal static ImmutableList<string> RenderRow(Row row, Context context) 
-    //{
-    //    if (row.Elements.Count == 0)
-    //        return ImmutableList<string>.Empty;
+    internal static ImmutableList<ImmutableList<ColoredText>> RenderRow(Row row, Context context)
+    {
+        if (row.Elements.Count == 0)
+            return ImmutableList<ImmutableList<ColoredText>>.Empty;
 
-    //    var availableWidthAfterBorder = context.AvailableWidth - (row.Attributes.Border is Border.NoBorder ? 0 : row.Elements.Count + 1);
+        var availableWidthAfterBorder = context.AvailableWidth - (row.Attributes.Border is Border.NoBorder ? 0 : row.Elements.Count + 1);
 
-    //    // First let's determine how wide each element needs to be (for now, fair sizing)
-    //    var elementWidth = (int)Math.Floor(decimal.Divide(availableWidthAfterBorder, row.Elements.Count));
+        // First let's determine how wide each element needs to be (for now, fair sizing)
+        var elementWidth = (int)Math.Floor(decimal.Divide(availableWidthAfterBorder, row.Elements.Count));
 
-    //    var elementRows = row.Elements.Select(el => Render(el, context with { AvailableWidth = (uint)elementWidth })).ToImmutableList();
+        var elementRows = row.Elements.Select(el => Render(el, context with { AvailableWidth = (uint)elementWidth })).ToImmutableList();
 
-    //    var columnSizes = elementRows.Select(rows => rows.Max(row => row.Length)).ToImmutableList();
+        var columnSizes = elementRows.Select(rows => rows.Max(row => row.Sum(word => word.Text.Length))).ToImmutableList();
 
-    //    Func<char, char, char, char, string> makeLine = (left, line, col, right) =>
-    //        columnSizes
-    //        .Aggregate(new StringBuilder().Append(left), (acc, colSize) => acc.Append(new string(line, colSize)).Append(col))
-    //        .Do(strBuilder => strBuilder.Remove(strBuilder.Length - 1, 1))
-    //        .Append(right)
-    //        .ToString();
+        ImmutableList<ColoredText> makeLine(ConsoleColor? color, char left, char line, char col, char right) =>
+            columnSizes
+            .Aggregate(
+                seed: ImmutableList<ColoredText>.Empty.Add(new($"{left}", color)),
+                func: (acc, colSize) => acc.Add(new(new string(line, colSize), color)).Add(new($"{col}", color)))
+            .Map(list => list.RemoveAt(list.Count - 1))
+            .Add(new($"{right}", color));
 
-    //    var (headerLine, columnLine, bottomLine) = row.Attributes.Border switch
-    //    {
-    //        Border.ThinBorder   => (makeLine('┌', '─', '┬', '┐'), "│", makeLine('└', '─', '┴', '┘')),
-    //        Border.DoubleBorder => (makeLine('╔', '═', '╦', '╗'), "║", makeLine('╚', '═', '╩', '╝')),
-    //        _ => (string.Empty, string.Empty, string.Empty),
-    //    };
+        var (headerLine, columnLine, bottomLine) = Border.Map(
+            row.Attributes.Border,
+            whenNoBorder: () => (ImmutableList<ColoredText>.Empty, (ColoredText?)null, ImmutableList<ColoredText>.Empty),
+            whenThinBorder: borderInfo => (makeLine(borderInfo.Color, '┌', '─', '┬', '┐'), new("│", borderInfo.Color), makeLine(borderInfo.Color, '└', '─', '┴', '┘')),
+            whenDoubleBorder: borderInfo => (makeLine(borderInfo.Color, '╔', '═', '╦', '╗'), new("║", borderInfo.Color), makeLine(borderInfo.Color, '╚', '═', '╩', '╝')));
 
-    //    var toReturn = 
-    //        Enumerable
-    //        .Range(0, elementRows.Max(r => r.Count))
-    //        .Aggregate(
-    //            ImmutableList<string>.Empty, 
-    //            (acc, rowIndex) => { 
-    //                var lineBuilder = new StringBuilder();
+        var toReturn =
+            Enumerable
+            .Range(0, elementRows.Max(r => r.Count))
+            .Aggregate(
+                ImmutableList<ImmutableList<ColoredText>>.Empty,
+                (acc, rowIndex) =>
+                {
+                    var line = ImmutableList<ColoredText>.Empty;
 
-    //                for (var colIndex = 0; colIndex < row.Elements.Count; colIndex++) 
-    //                    lineBuilder
-    //                        .Append(columnLine)
-    //                        .Append(
-    //                            elementRows[colIndex].Count <= rowIndex
-    //                            ? new string(' ', columnSizes[colIndex])
-    //                            : elementRows[colIndex][rowIndex]);
+                    for (var colIndex = 0; colIndex < row.Elements.Count; colIndex++)
+                        line = line.Map(l => columnLine is null ? l : l.Add(columnLine))
+                            .AddRange(elementRows[colIndex].Count <= rowIndex
+                                 ? ImmutableList<ColoredText>.Empty.Add(new (new string(' ', columnSizes[colIndex]), null))
+                                 : elementRows[colIndex][rowIndex]);
 
-    //                return acc.Add(lineBuilder.Append(columnLine).ToString());
-    //            });
+                    line = line.Map(l => columnLine is null ? l : l.Add(columnLine));
 
-    //    if (!string.IsNullOrWhiteSpace(headerLine))
-    //        return toReturn.Insert(0, headerLine).Add(bottomLine);
+                    return acc.Add(line);
+                });
 
-    //    return toReturn;
-    //}
+        if (!headerLine.IsEmpty)
+            return toReturn.Insert(0, headerLine).Add(bottomLine);
+
+        return toReturn;
+    }
 
     internal static T Do<T>(this T subject, Action<T> action)
     {

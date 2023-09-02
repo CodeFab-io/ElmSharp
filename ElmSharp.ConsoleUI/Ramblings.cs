@@ -6,16 +6,16 @@ namespace ElmSharp.ConsoleUI
 {
     public abstract record UIElement()
     {
-        //public sealed record Row(Row.RowAttributes Attributes, ImmutableList<UIElement> Elements) : UIElement() 
-        //{
-        //    public Row(RowAttributes Attributes, params UIElement[] Elements) : this(Attributes, Elements.ToImmutableList()) { }
+        public sealed record Row(Row.RowAttributes Attributes, ImmutableList<UIElement> Elements) : UIElement()
+        {
+            public Row(RowAttributes Attributes, params UIElement[] Elements) : this(Attributes, Elements.ToImmutableList()) { }
 
-        //    public sealed record RowAttributes(Border Border) 
-        //    { 
-        //        public static readonly RowAttributes Default =
-        //            new(Border: Border.None);
-        //    }
-        //}
+            public sealed record RowAttributes(Border Border)
+            {
+                public static readonly RowAttributes RowDefaults =
+                    new(Border: Border.None);
+            }
+        }
 
         public sealed record Paragraph(ParagraphAttributes Attributes, ImmutableList<ColoredText> Elements) : UIElement() 
         {
@@ -26,19 +26,27 @@ namespace ElmSharp.ConsoleUI
                 Border Border,
                 TextAlign TextAlign)
             {
-                public static readonly ParagraphAttributes Default =
+                public static readonly ParagraphAttributes ParagraphDefaults =
                     new(BackgroundColor: default,
                         Border: Border.None,
                         TextAlign: TextAlign.Left);
             }
         }
 
-        public sealed record ColoredText(string Text, ConsoleColor? Color = default) 
+        public sealed record ColoredText(string Text, ConsoleColor? Color = default)
         {
             public static implicit operator ColoredText(string text) => new(text);
 
             public static implicit operator ColoredText(char text) => new(text.ToString());
         }
+
+        internal static T Map<T>(
+            UIElement element,
+            Func<Row, T> whenRow,
+            Func<Paragraph, T> whenParagraph) => element switch { 
+                Row row => whenRow(row),
+                Paragraph paragraph => whenParagraph(paragraph)
+            };
     }
 
     public abstract record Border
