@@ -54,6 +54,17 @@ namespace ElmSharp.ConsoleUI
         internal sealed record ThinBorder(ConsoleColor? Color) : Border { }
 
         internal sealed record DoubleBorder(ConsoleColor? Color) : Border { }
+
+        internal static T Map<T>(
+            Border border,
+            Func<T> whenNoBorder,
+            Func<ThinBorder, T> whenThinBorder,
+            Func<DoubleBorder, T> whenDoubleBorder) => border switch
+            {
+                NoBorder => whenNoBorder(),
+                ThinBorder borderInfo => whenThinBorder(borderInfo),
+                DoubleBorder borderInfo => whenDoubleBorder(borderInfo),
+            };
     }
 
     public abstract record TextAlign
@@ -67,5 +78,15 @@ namespace ElmSharp.ConsoleUI
         internal sealed record CenterTextAlign : TextAlign { }
 
         internal sealed record RightTextAlign : TextAlign { }
+
+        internal static T Map<T>(TextAlign textAlign,
+            Func<T> whenLeft,
+            Func<T> whenCenter,
+            Func<T> whenRight) => textAlign switch 
+            { 
+                LeftTextAlign => whenLeft(),
+                CenterTextAlign => whenCenter(),
+                RightTextAlign => whenRight(),
+            };
     }
 }

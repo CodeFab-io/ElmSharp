@@ -21,7 +21,7 @@ internal static class Utils
         if (input.IsEmpty || input.All(str => string.IsNullOrEmpty(str.Text)))
             return ImmutableList<ImmutableList<ColoredText>>.Empty.Add(input);
 
-        var (Output, CurrentLine, CurrentWord) = 
+        var (Output, CurrentLine, CurrentWord) =
             input
             .SelectMany(token => token.Text.Select(chr => (chr, token.Color)))
             .Append((' ', null))
@@ -57,7 +57,7 @@ internal static class Utils
                 }
             );
 
-        var toReturn = 
+        var toReturn =
             ((CurrentLine.Count > 0 || CurrentWord.Count > 1)
             ? Output.Add(CurrentLine.AddRange(CurrentWord))
             : Output)
@@ -101,26 +101,35 @@ internal static class Utils
         }
     }
 
-    internal static ImmutableList<ImmutableList<ColoredText>> RenderParagraph(Paragraph paragraph, Context originalContext) 
+    internal static ImmutableList<ImmutableList<ColoredText>> RenderParagraph(Paragraph paragraph, Context originalContext)
     {
-        var context = paragraph.Attributes.Border is Border.NoBorder ? originalContext 
+        var context = paragraph.Attributes.Border is Border.NoBorder ? originalContext
             : originalContext with { AvailableWidth = originalContext.AvailableWidth - 4 };
 
         var reflownParagraph = ParagraphReflow(paragraph.Elements, context);
+
         var widestLine = reflownParagraph.Max(line => line.Sum(word => word.Text.Length));
 
-        ImmutableList<ColoredText> alignLine(ImmutableList<ColoredText> line) => paragraph.Attributes.TextAlign switch
-        {
-            TextAlign.LeftTextAlign => line
-                .Add(new(Text: new(' ', widestLine - line.Sum(word => word.Text.Length)))),
-            TextAlign.CenterTextAlign => line
-                .Map(line => new { line, lineLength = line.Sum(word => word.Text.Length) })
-                .Map(info => info.line
-                    .Insert(0, new(Text: new(' ', (widestLine - info.lineLength) / 2 + (widestLine - info.lineLength) % 2)))
-                    .Add(new(Text: new(' ', (widestLine - info.lineLength) / 2)))),
-            TextAlign.RightTextAlign => line
-                .Insert(0, new(Text: new(' ', widestLine - line.Sum(word => word.Text.Length)))),
-        };
+        return Border.Map(
+            paragraph.Attributes.Border,
+            whenNoBorder: () => reflownParagraph,
+            whenThinBorder: borderInfo => makeBorder(borderInfo.Color, '┌', '─', '┐', '│', '└', '┘'),
+            whenDoubleBorder: borderInfo => makeBorder(borderInfo.Color, '╔', '═', '╗', '║', '╚', '╝'));
+
+        ImmutableList<ColoredText> alignLine(ImmutableList<ColoredText> line) =>
+            TextAlign.Map(
+                paragraph.Attributes.TextAlign,
+                whenLeft: () =>
+                    line.Add(new(Text: new(' ', widestLine - line.Sum(word => word.Text.Length)))),
+                whenCenter: () =>
+                    line
+                    .Map(line => new { line, lineLength = line.Sum(word => word.Text.Length) })
+                    .Map(info => info.line
+                        .Insert(0, new(Text: new(' ', (widestLine - info.lineLength) / 2 + (widestLine - info.lineLength) % 2)))
+                        .Add(new(Text: new(' ', (widestLine - info.lineLength) / 2)))),
+                whenRight: () =>
+                    line
+                    .Insert(0, new(Text: new(' ', widestLine - line.Sum(word => word.Text.Length)))));
 
         ImmutableList<ImmutableList<ColoredText>> makeBorder(ConsoleColor? color, char lt, char h, char rt, char v, char lb, char rb) =>
             ImmutableList<ImmutableList<ColoredText>>
@@ -132,13 +141,6 @@ internal static class Utils
                         .AddRange(alignLine(line))
                         .Add(new($" {v}", color))))
                 .Add(ImmutableList<ColoredText>.Empty.Add(new($"{lb}{h}{new(h, widestLine)}{h}{rb}", color)));
-
-        return paragraph.Attributes.Border switch
-        {
-            Border.ThinBorder borderInfo => makeBorder(borderInfo.Color, '┌', '─', '┐', '│', '└', '┘'),
-            Border.DoubleBorder borderInfo => makeBorder(borderInfo.Color, '╔', '═', '╗', '║', '╚', '╝'),
-            Border.NoBorder => reflownParagraph,
-        };
     }
 
     //internal static ImmutableList<string> RenderRow(Row row, Context context) 
@@ -205,6 +207,6 @@ internal static class Utils
     internal static TOut Map<TIn, TOut>(this TIn subject, Func<TIn, TOut> func) =>
         func(subject);
 
-    public static ColoredText WithColor(this string text, ConsoleColor color) => 
+    public static ColoredText WithColor(this string text, ConsoleColor color) =>
         new(Text: text, Color: color);
 }
