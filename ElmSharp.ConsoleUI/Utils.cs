@@ -117,7 +117,7 @@ internal static class Utils
             whenDoubleBorder: borderInfo => makeBorder(borderInfo.Color, '╔', '═', '╗', '║', '╚', '╝'));
 
         ImmutableList<ColoredText> alignLine(ImmutableList<ColoredText> line) =>
-            TextAlign.Map(
+            TextAlignment.Map(
                 paragraph.Attributes.TextAlign,
                 whenLeft: () =>
                     line.Add(new(Text: new(' ', widestLine - line.Sum(word => word.Text.Length)))),
@@ -153,12 +153,12 @@ internal static class Utils
         // First let's determine how wide each element needs to be (for now, fair sizing)
         var elementWidth = (int)Math.Floor(decimal.Divide(availableWidthAfterBorder, row.Elements.Count));
 
-        var elementRows = row.Elements.Select(el => Render(el, context with { AvailableWidth = (uint)elementWidth })).ToImmutableList();
+        var elementRows = row.Elements.Select(el => Render(el.Element, context with { AvailableWidth = (uint)elementWidth })).ToImmutableList();
 
-        var columnSizes = elementRows.Select(rows => rows.Max(row => row.Sum(word => word.Text.Length))).ToImmutableList();
+        var elementSizes = elementRows.Select(rows => rows.Max(row => row.Sum(word => word.Text.Length))).ToImmutableList();
 
         ImmutableList<ColoredText> makeLine(ConsoleColor? color, char left, char line, char col, char right) =>
-            columnSizes
+            elementSizes
             .Aggregate(
                 seed: ImmutableList<ColoredText>.Empty.Add(new($"{left}", color)),
                 func: (acc, colSize) => acc.Add(new(new string(line, colSize), color)).Add(new($"{col}", color)))
@@ -183,7 +183,7 @@ internal static class Utils
                     for (var colIndex = 0; colIndex < row.Elements.Count; colIndex++)
                         line = line.Map(l => columnLine is null ? l : l.Add(columnLine))
                             .AddRange(elementRows[colIndex].Count <= rowIndex
-                                 ? ImmutableList<ColoredText>.Empty.Add(new (new string(' ', columnSizes[colIndex]), null))
+                                 ? ImmutableList<ColoredText>.Empty.Add(new (new string(' ', elementSizes[colIndex]), null))
                                  : elementRows[colIndex][rowIndex]);
 
                     line = line.Map(l => columnLine is null ? l : l.Add(columnLine));
